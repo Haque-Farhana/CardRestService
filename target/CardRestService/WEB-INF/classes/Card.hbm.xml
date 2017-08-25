@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"> 
+
+
+<hibernate-mapping>
+   <class name="com.fh.entity.Card" table="cardinfo">
+      <meta attribute="class-description">
+         This class contains the passenger detail. 
+      </meta>
+      <id name="id" type="int" column="id">
+         <generator class="native"/>
+      </id>
+      <property name="card_no" column="card_no" type="int"/>
+      <property name="ccv" column="ccv" type="int"/>
+      <property name="amount" column="amount" type="double"/>
+   </class>
+</hibernate-mapping>
