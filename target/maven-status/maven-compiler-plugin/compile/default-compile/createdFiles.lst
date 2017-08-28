@@ -1,5 +1,5 @@
 com\fh\entity\Card.class
+com\fh\dal\CardDAO.class
 com\fh\test\CardServiceTester$1.class
 com\fh\services\CardService.class
 com\fh\test\CardServiceTester.class
-com\fh\entity\ManageCard.class

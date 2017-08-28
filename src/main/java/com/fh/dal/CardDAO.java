@@ -1,5 +1,7 @@
-package com.fh.entity;
+package com.fh.dal;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 import org.hibernate.HibernateException;
@@ -8,12 +10,14 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 
-public class ManageCard { // TODO: move to DAL package (CardDAO)
+import com.fh.entity.Card;
+
+public class CardDAO {
 	private static SessionFactory factory;
 
 	// TODO: Card details hashing
 
-	public ManageCard() {
+	public CardDAO() {
 		try {
 			factory = new Configuration().configure().buildSessionFactory();
 		} catch (Throwable ex) {
@@ -49,12 +53,6 @@ public class ManageCard { // TODO: move to DAL package (CardDAO)
 		try {
 			tx = session.beginTransaction();
 			cardList = session.createQuery("FROM Card").list();
-			/*
-			 * for (Iterator iterator = flightList.iterator(); iterator.hasNext();) {
-			 * FlightDetail flight = (FlightDetail) iterator.next();
-			 * System.out.print("Source: " + flight.getSource());
-			 * System.out.print(" :: Flight#: " + flight.getPrice()); }
-			 */
 			tx.commit();
 		} catch (HibernateException e) {
 			if (tx != null)
@@ -72,12 +70,14 @@ public class ManageCard { // TODO: move to DAL package (CardDAO)
 		int id = 0;
 		try {
 			tx = session.beginTransaction();
-			Card c = (Card) session.get(Card.class, card.getId()); // TODO: Why are we getting the card
-			c.setCard_no(card.getCard_no());
-			c.setCcv(card.getCard_no());
-			c.setAmount(card.getAmount());
-			id = c.getId();
-			session.save(c);
+			// Card c = (Card) session.get(Card.class, card.getId()); // TODO: Why are we
+			// getting the card
+			// c.setCard_no(card.getCard_no());
+			// c.setCcv(card.getCard_no());
+			// c.setAmount(card.getAmount());
+			// id = c.getId();
+			// session.save(c);
+			session.save(card);
 			tx.commit();
 		} catch (HibernateException e) {
 			if (tx != null)
@@ -89,7 +89,6 @@ public class ManageCard { // TODO: move to DAL package (CardDAO)
 		return id;
 	}
 
-	/* Method to UPDATE flight number of a flight */
 	public int updateCard(Card card) {
 		Session session = factory.openSession();
 		Transaction tx = null;
@@ -113,7 +112,6 @@ public class ManageCard { // TODO: move to DAL package (CardDAO)
 		return id;
 	}
 
-	/* Method to DELETE an flight from the records */
 	public int deleteCard(int id) {
 		Session session = factory.openSession();
 		Transaction tx = null;
@@ -137,15 +135,25 @@ public class ManageCard { // TODO: move to DAL package (CardDAO)
 		return getID;
 	}
 
-	public boolean checkCard(int card_no, int ccv) { // TODO: name it as validateCard
+	public boolean validateCard(int card_no, int ccv, double amount) {
 		Session session = factory.openSession();
 		Transaction tx = null;
 		boolean isValid = false;
+		//Query card = null;
 		try {
 			tx = session.beginTransaction();
-			if (session
-					.createQuery("FROM Card c WHERE c.card_no = '" + card_no + "' AND c.ccv = '" + ccv + "'") != null) {
+			int count = ((Long) session
+					.createQuery(
+							"Select count(*) FROM Card c WHERE c.card_no = '" + card_no + "' AND c.ccv = '" + ccv
+									+ "' AND c.amount >= '" + amount + "'")
+					.uniqueResult()).intValue();
+			// .list();
+			//
+			System.out.println("Inside Vaidate Card DAO, COUNT= " + count);
+			if (count > 0) {
 				isValid = true;
+			} else {
+				isValid = false;
 			}
 			tx.commit();
 		} catch (HibernateException e) {
@@ -158,31 +166,24 @@ public class ManageCard { // TODO: move to DAL package (CardDAO)
 		return isValid;
 	}
 
-	// public boolean checkLogin(String username, String password) {
-	// Session session = factory.openSession();
-	// System.out.println("Inside ListFlight");
-	// Transaction tx = null;
-	// // String pnr = null;
-	// boolean isValid = false;
-	// try {
-	// tx = session.beginTransaction();
-	// if (session.createQuery("FROM Passenger p WHERE p.username = '" + username +
-	// "' AND p.password = '"
-	// + password + "'") != null) {
-	// isValid = true;
-	// // pnr = randomPNRGenerator(6);
-	// }
-	// else
-	// System.out.println("Result not found!!");
-	// tx.commit();
-	// } catch (HibernateException e) {
-	// if (tx != null)
-	// tx.rollback();
-	// e.printStackTrace();
-	// } finally {
-	// session.close();
-	// }
-	// // return pnr;
-	// return isValid;
-	// }
+	public static String getEncryptedPassword(String clearTextPassword) {
+		String first12digits = "";
+		String[] splits = clearTextPassword.split("(?!^)", 13);
+		String last4digits = splits[splits.length - 1];
+		for (int i = 0; i < splits.length - 1; i++) {
+			first12digits = first12digits + splits[i];
+		}
+
+		try {
+			MessageDigest md = MessageDigest.getInstance("SHA-256");
+			md.update(first12digits.getBytes());
+			String s = new sun.misc.BASE64Encoder().encode(md.digest());
+			s = s + last4digits;
+			return s;
+		} catch (NoSuchAlgorithmException e) {
+			// _log.error("Failed to encrypt password.", e);
+		}
+		return "";
+	}
+
 }

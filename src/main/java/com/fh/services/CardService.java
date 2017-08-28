@@ -1,5 +1,5 @@
 package com.fh.services;
- 
+
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -11,8 +11,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.fh.dal.CardDAO;
 import com.fh.entity.Card;
-import com.fh.entity.ManageCard;
 
 @Path("/CardService")
 public class CardService 
@@ -21,7 +21,7 @@ public class CardService
 	private final static String SUCCESS = "<response>SUCCESS</response>";
 	private final static String FAILURE = "<response>FAILURE</response>";
 	
-	ManageCard card = new ManageCard();
+	CardDAO card = new CardDAO();
 	
 	@GET
 	@Path("/card/{id}")
@@ -72,15 +72,24 @@ public class CardService
 	}
 
 	@POST
-	@Path("/checkCard")
+	@Path("/validateCard")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces(MediaType.APPLICATION_XML)
-	public String modifyCard(@FormParam("card_no") int card_no, @FormParam("ccv") int ccv) {
+	public String modifyCard(@FormParam("card_no") String card_no, @FormParam("ccv") String ccv,
+			@FormParam("amount") String amount) {
+
+		int cardno = Integer.parseInt(card_no);
+		int cvv = Integer.parseInt(ccv);
+		double price = Double.parseDouble(amount);
+
 
 		// Card c = new Card(id, card_no, ccv, amount);
-		if (card.checkCard(card_no, ccv)) {
+		System.out.println("Inside validateCard Services");
+		if (card.validateCard(cardno, cvv, price)) {
+			System.out.println("Inside success");
 			return SUCCESS;
 		} else {
+			System.out.println("Inside failure");
 			return FAILURE;
 		}
 	}
